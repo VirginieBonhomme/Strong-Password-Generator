@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strong Password Generator</title>
+    <style>
+        /* Basic Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            color: #333;
+        }
+
+        /* Container */
+        .container {
+            width: 350px;
+            padding: 25px;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        p {
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            color: #666;
+        }
+
+        /* Input and Controls */
+        label {
+            font-size: 0.85rem;
+            color: #555;
+            display: block;
+            margin-top: 15px;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .checkboxes label {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            margin: 8px 0;
+            color: #333;
+        }
+
+        .checkboxes input {
+            margin-right: 8px;
+        }
+
+        /* Buttons */
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Password Output with Inline Copy Icon */
+        .password-output {
+            display: flex;
+            align-items: center;
+            margin-top: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            padding-right: 10px;
+            position: relative;
+        }
+
+        .password-output input {
+            flex-grow: 1;
+            padding: 10px;
+            font-size: 1rem;
+            border: none;
+            background-color: transparent;
+            text-align: left;
+            outline: none;
+            cursor: text;
+        }
+
+        .copy-icon {
+            font-size: 1.2rem;
+            color: #28a745;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .copy-icon:hover {
+            color: #218838;
+        }
+
+        /* Tooltip for Copy Confirmation */
+        .tooltip {
+            visibility: hidden;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 5px;
+            padding: 5px;
+            position: absolute;
+            top: -30px;
+            right: 10px;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Requirements Display */
+        .requirements {
+            text-align: left;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        .requirements span {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .valid {
+            color: #28a745;
+        }
+
+        .invalid {
+            color: #f00;
+        }
+
+        .checkmark {
+            font-size: 1rem;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Strong Password Generator</h1>
+        <p>Generate a secure, work-appropriate password with ease!</p>
+        
+        <label for="length">Password Length:</label>
+        <input type="number" id="length" min="8" max="32" value="12">
+        
+        <div class="checkboxes">
+            <label><input type="checkbox" id="uppercase" checked> Include Uppercase Letters</label>
+            <label><input type="checkbox" id="lowercase" checked> Include Lowercase Letters</label>
+            <label><input type="checkbox" id="numbers" checked> Include Numbers</label>
+            <label><input type="checkbox" id="symbols"> Include Symbols</label>
+        </div>
+        
+        <button id="generate">Generate Password</button>
+        
+        <div class="password-output">
+            <input type="text" id="password" readonly placeholder="Your secure password">
+            <span class="copy-icon" id="copy" title="Copy">&#128203;</span>
+            <div class="tooltip" id="tooltip">Copied!</div>
+        </div>
+
+        <!-- Requirements Display -->
+        <div class="requirements">
+            <span id="req-length" class="invalid"><span class="checkmark">✘</span>At least 8 characters</span>
+            <span id="req-uppercase" class="invalid"><span class="checkmark">✘</span>Includes uppercase letter</span>
+            <span id="req-lowercase" class="invalid"><span class="checkmark">✘</span>Includes lowercase letter</span>
+            <span id="req-numbers" class="invalid"><span class="checkmark">✘</span>Includes number</span>
+            <span id="req-symbols" class="invalid"><span class="checkmark">✘</span>Includes symbol</span>
+        </div>
+    </div>
+
+    <script>
+        function generatePassword() {
+            const length = document.getElementById("length").value;
+            const useUppercase = document.getElementById("uppercase").checked;
+            const useLowercase = document.getElementById("lowercase").checked;
+            const useNumbers = document.getElementById("numbers").checked;
+            const useSymbols = document.getElementById("symbols").checked;
+
+            const uppercaseChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const lowercaseChars = "abcdefghijklmnopqrstuvwxyz";
+            const numberChars = "0123456789";
+            const symbolChars = "!@#$%^&*()_+[]{}|;:,.<>?";
+
+            let characterSet = "";
+            if (useUppercase) characterSet += uppercaseChars;
+            if (useLowercase) characterSet += lowercaseChars;
+            if (useNumbers) characterSet += numberChars;
+            if (useSymbols) characterSet += symbolChars;
+
+            let password = "";
+            for (let i = 0; i < length; i++) {
+                const randomIndex = Math.floor(Math.random() * characterSet.length);
+                password += characterSet[randomIndex];
+            }
+
+            document.getElementById("password").value = password;
+            checkRequirements(password);
+        }
+
+        function checkRequirements(password) {
+            const requirements = [
+                { element: document.getElementById("req-length"), condition: password.length >= 8 },
+                { element: document.getElementById("req-uppercase"), condition: /[A-Z]/.test(password) },
+                { element: document.getElementById("req-lowercase"), condition: /[a-z]/.test(password) },
+                { element: document.getElementById("req-numbers"), condition: /[0-9]/.test(password) },
+                { element: document.getElementById("req-symbols"), condition: /[^A-Za-z0-9]/.test(password) }
+            ];
+
+            requirements.forEach(req => {
+                if (req.condition) {
+                    req.element.classList.add("valid");
+                    req.element.classList.remove("invalid");
+                    req.element.querySelector(".checkmark").textContent = "✔";
+                } else {
+                    req.element.classList.remove("valid");
+                    req.element.classList.add("invalid");
+                    req.element.querySelector(".checkmark").textContent = "✘";
+                }
+            });
+        }
+
+        document.getElementById("generate").addEventListener("click", generatePassword);
+
+        document.getElementById("copy").addEventListener("click", () => {
+            const passwordField = document.getElementById("password");
+            const tooltip = document.getElementById("tooltip");
+
+            passwordField.select();
+            document.execCommand("copy");
+
+            tooltip.classList.add("show");
+            setTimeout(() => {
+                tooltip.classList.remove("show");
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
